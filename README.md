@@ -53,6 +53,30 @@ The trick being that we can cheaply detect if a race occurred, and if so we retr
 In other words: *The goal and hope is that there should be no case where a reader does not re-run its critical section if there was a race.*
 
 
+## Orderings
+
+Given the two concurrent histories, orange signifying operations of a writer, blue operations of a reader:
+
+![history graph](https://raw.githubusercontent.com/jakewins/seqmut/master/histories/overview.png)
+
+Where `R(..)` signifies an unfenced read, `W(..)` signifies an unfenced write, `Load(..)` signifies an atomic read and `Inc(..)`
+signifies an atomic increment.  
+
+These are the two histories where the lock will consider the read to have taken place in a deterministic way:
+
+![happy path 1](https://raw.githubusercontent.com/jakewins/seqmut/master/histories/happy1.png)
+
+![happy path 2](https://raw.githubusercontent.com/jakewins/seqmut/master/histories/happy2.png)
+
+And the following are the histories where the read value is unknown, and where the lock would then require a retry:
+
+![sad path 1](https://raw.githubusercontent.com/jakewins/seqmut/master/histories/rs_ws_re_we.png)
+
+![sad path 1](https://raw.githubusercontent.com/jakewins/seqmut/master/histories/rs_ws_we_re.png)
+
+![sad path 1](https://raw.githubusercontent.com/jakewins/seqmut/master/histories/ws_rs_re_we.png)
+
+![sad path 1](https://raw.githubusercontent.com/jakewins/seqmut/master/histories/ws_rs_we_re.png)
 
 ## Performance
 
