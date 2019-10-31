@@ -16,6 +16,39 @@ The sequence starts at 0. Hence, it will always be odd when a writer is in its c
 
 In the happy case, a reader thus only performs two fenced reads to verify it has successfully executed its critical section.
 
+## API
+
+Readers acquire a "ticket to ride" stamp, and perform their critical work in a loop body.
+At the end of the loop body, they verify if they were successful:
+
+```
+var rw RWMutex
+stamp := rw.RStamp()
+for {
+    // Start critical section
+
+    // ..
+
+    // End critical section
+    if rw.Ok(stamp) {
+        break
+    }
+}
+```
+
+Writers use the lock just like normal Go mutexes:
+
+```
+var rw RWMutex
+rw.Lock()
+// Start critical section
+
+// ..
+
+// End critical section
+rw.Unlock()
+```
+
 ## Safety
 
 The go race detector does not like this code, which is why you should not use it:
