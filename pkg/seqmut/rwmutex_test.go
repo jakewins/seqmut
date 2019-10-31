@@ -9,6 +9,8 @@ import (
 	"testing"
 )
 
+const MaxUint64 = ^uint64(0)
+
 func TestReadHappyPath(t *testing.T) {
 	var rw RWMutex
 	v := 0
@@ -91,23 +93,52 @@ func TestRWMutex(t *testing.T) {
 	if testing.Short() {
 		n = 5
 	}
-	HammerRWMutex(1, 1, n)
-	HammerRWMutex(1, 3, n)
-	HammerRWMutex(1, 10, n)
-	HammerRWMutex(4, 1, n)
-	HammerRWMutex(4, 3, n)
-	HammerRWMutex(4, 10, n)
-	HammerRWMutex(10, 1, n)
-	HammerRWMutex(10, 3, n)
-	HammerRWMutex(10, 10, n)
-	HammerRWMutex(10, 5, n)
+	HammerRWMutex(1, 1, n, 0)
+	HammerRWMutex(1, 3, n, 0)
+	HammerRWMutex(1, 10, n, 0)
+	HammerRWMutex(4, 1, n, 0)
+	HammerRWMutex(4, 3, n, 0)
+	HammerRWMutex(4, 10, n, 0)
+	HammerRWMutex(10, 1, n, 0)
+	HammerRWMutex(10, 3, n, 0)
+	HammerRWMutex(10, 10, n, 0)
+	HammerRWMutex(10, 5, n, 0)
 }
 
-func HammerRWMutex(gomaxprocs, numReaders, numIterations int) {
+// Same as above, but with the sequence close to wrapping around back to 0
+func TestRWMutex_SequenceWrapAround(t *testing.T) {
+	defer runtime.GOMAXPROCS(runtime.GOMAXPROCS(-1))
+	n := 1000
+	initialSequence := MaxUint64 - 251
+	if testing.Short() {
+		initialSequence = MaxUint64 - 1
+		n = 5
+	}
+	HammerRWMutex(1, 1, n, initialSequence)
+	HammerRWMutex(1, 3, n, initialSequence)
+	HammerRWMutex(1, 10, n, initialSequence)
+	HammerRWMutex(4, 1, n, initialSequence)
+	HammerRWMutex(4, 3, n, initialSequence)
+	HammerRWMutex(4, 10, n, initialSequence)
+	HammerRWMutex(10, 1, n, initialSequence)
+	HammerRWMutex(10, 3, n, initialSequence)
+	HammerRWMutex(10, 10, n, initialSequence)
+	HammerRWMutex(10, 5, n, initialSequence)
+}
+
+func HammerRWMutex(gomaxprocs, numReaders, numIterations int, initialSequence uint64) {
 	runtime.GOMAXPROCS(gomaxprocs)
+
+	// Initial sequence must be even, sanity check early
+	if (initialSequence & 1) != 0 {
+		panic(fmt.Sprintf("initial sequence must be even, got %d", initialSequence))
+	}
+
 	// Number of active readers + 10000 * number of active writers.
 	var activity int32
 	var rwm RWMutex
+	rwm.sequence = initialSequence
+
 	cdone := make(chan bool)
 	go writer(&rwm, numIterations, &activity, cdone)
 	var i int
