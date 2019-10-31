@@ -8,7 +8,7 @@ import (
 type Stamp uint64
 
 type RWMutex struct {
-	mut sync.Mutex
+	mut      sync.Mutex
 	sequence uint64
 }
 

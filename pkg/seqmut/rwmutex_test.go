@@ -194,7 +194,7 @@ func writer(rwm *RWMutex, num_iterations int, activity *int32, cdone chan bool) 
 func BenchmarkUncontendedRWMutex(b *testing.B) {
 	var rw RWMutex
 
-	b.RunParallel(func (pb *testing.PB) {
+	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			stamp := rw.RStamp()
 			for {
@@ -231,7 +231,7 @@ func BenchmarkContendedRWMutex(b *testing.B) {
 
 	b.ResetTimer()
 
-	b.RunParallel(func (pb *testing.PB) {
+	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			var read uint32
 			stamp := rw.RStamp()
@@ -257,7 +257,7 @@ func BenchmarkContendedRWMutex(b *testing.B) {
 func BenchmarkUncontendedSyncRWMutex(b *testing.B) {
 	var rw sync.RWMutex
 
-	b.RunParallel(func (pb *testing.PB) {
+	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			rw.RLock()
 			rw.RUnlock()
@@ -289,7 +289,7 @@ func BenchmarkContendedSyncRWMutex(b *testing.B) {
 
 	b.ResetTimer()
 
-	b.RunParallel(func (pb *testing.PB) {
+	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			var read uint32
 			rw.RLock()
